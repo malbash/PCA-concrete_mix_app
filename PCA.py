@@ -1,4 +1,4 @@
-pip install streamlit scikit-learn scipy scikit-optimize matplotlib pandas openpyxl
+#pip install streamlit scikit-learn scipy scikit-optimize matplotlib pandas openpyxl
 ##############################
 # app.py
 ##############################
