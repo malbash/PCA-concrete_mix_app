@@ -3,5 +3,6 @@ pandas
 numpy
 matplotlib
 scikit-learn
+scipy
 scikit-optimize
 openpyxl
