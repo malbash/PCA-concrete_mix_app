@@ -16,7 +16,7 @@ from skopt.space import Real
 from skopt.utils import use_named_args
 from scipy.optimize import minimize
 
-# 1) The FIRST Streamlit call must be set_page_config (before any st.* usage)
+# 1) MUST be first Streamlit command
 st.set_page_config(page_title="PCA Concrete Mix Optimizer", layout="wide")
 
 # -----------------------
@@ -103,33 +103,33 @@ minimize_methods_display = {
 def get_bounds(concrete_type):
     if concrete_type == "NSC":
         return [
-            Real(140, 400, "Cement (Kg/m3)"),
-            Real(0, 150,   "Blast Furnace Slag (Kg/m3)"),
-            Real(0, 1,     "Silica Fume (Kg/m3)"),
-            Real(0, 100,   "Fly Ash (Kg/m3)"),
-            Real(120, 200, "Water (Kg/m3)"),
-            Real(800, 1200,"Coarse Aggregate (Kg/m3)"),
-            Real(600, 700, "Fine Aggregate (Kg/m3)"),
+            Real(140, 400, name="Cement (Kg/m3)"),
+            Real(0, 150,   name="Blast Furnace Slag (Kg/m3)"),
+            Real(0, 1,     name="Silica Fume (Kg/m3)"),
+            Real(0, 100,   name="Fly Ash (Kg/m3)"),
+            Real(120, 200, name="Water (Kg/m3)"),
+            Real(800, 1200,name="Coarse Aggregate (Kg/m3)"),
+            Real(600, 700, name="Fine Aggregate (Kg/m3)"),
         ]
     elif concrete_type == "HSC":
         return [
-            Real(240, 550, "Cement (Kg/m3)"),
-            Real(0, 150,   "Blast Furnace Slag (Kg/m3)"),
-            Real(0, 50,    "Silica Fume (Kg/m3)"),
-            Real(0, 150,   "Fly Ash (Kg/m3)"),
-            Real(105, 160, "Water (Kg/m3)"),
-            Real(700, 1000,"Coarse Aggregate (Kg/m3)"),
-            Real(600, 800, "Fine Aggregate (Kg/m3)"),
+            Real(240, 550, name="Cement (Kg/m3)"),
+            Real(0, 150,   name="Blast Furnace Slag (Kg/m3)"),
+            Real(0, 50,    name="Silica Fume (Kg/m3)"),
+            Real(0, 150,   name="Fly Ash (Kg/m3)"),
+            Real(105, 160, name="Water (Kg/m3)"),
+            Real(700, 1000,name="Coarse Aggregate (Kg/m3)"),
+            Real(600, 800, name="Fine Aggregate (Kg/m3)"),
         ]
     else:  # UHPC
         return [
-            Real(350, 1000,"Cement (Kg/m3)"),
-            Real(0, 150,   "Blast Furnace Slag (Kg/m3)"),
-            Real(140, 300, "Silica Fume (Kg/m3)"),
-            Real(0, 200,   "Fly Ash (Kg/m3)"),
-            Real(125, 150, "Water (Kg/m3)"),
-            Real(0, 1,     "Coarse Aggregate (Kg/m3)"),
-            Real(650, 1200,"Fine Aggregate (Kg/m3)"),
+            Real(350, 1000,name="Cement (Kg/m3)"),
+            Real(0, 150,   name="Blast Furnace Slag (Kg/m3)"),
+            Real(140, 300, name="Silica Fume (Kg/m3)"),
+            Real(0, 200,   name="Fly Ash (Kg/m3)"),
+            Real(125, 150, name="Water (Kg/m3)"),
+            Real(0, 1,     name="Coarse Aggregate (Kg/m3)"),
+            Real(650, 1200,name="Fine Aggregate (Kg/m3)"),
         ]
 
 def predict_strength(mix_metric):
