@@ -40,7 +40,7 @@ def load_and_train_model():
     model = RandomForestRegressor(
         max_depth=None,
         max_features='sqrt',
-        n_estimators=200,
+        n_estimators=50,
         random_state=42
     )
     model.fit(X, y)
@@ -166,7 +166,7 @@ def optimize_mix_bayesian(target_strength_mpa, concrete_type, acq_func="EI"):
     res = gp_minimize(
         objective,
         dimensions=bounds,
-        n_calls=50,
+        n_calls=20,
         random_state=42,
         acq_func=acq_func
     )
