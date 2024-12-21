@@ -298,7 +298,7 @@ if st.button("Optimize"):
             co2_disp = bayes_co2 * KG_TO_LB
             str_disp = bayes_str * MPA_TO_PSI
             cost_disp= bayes_cost / M3_TO_FT3
-            co2_label= "lb/m³"
+            co2_label= "lb/ft³"
             str_label= "psi"
             cost_label="$/ft³"
             mix_unit  ="lb/ft³"
@@ -328,7 +328,7 @@ if st.button("Optimize"):
             co2_disp = min_co2 * KG_TO_LB
             str_disp = min_str * MPA_TO_PSI
             cost_disp= min_cost / M3_TO_FT3
-            co2_label= "lb/m³"
+            co2_label= "lb/ft³"
             str_label= "psi"
             cost_label="$/ft³"
             mix_unit  ="lb/ft³"
@@ -346,19 +346,30 @@ if st.button("Optimize"):
 
     st.write("---")
     st.markdown("### Iteration Values")
+
     def co2_for_plot(c):
         return c if unit_system=="Metric" else c * KG_TO_LB
 
-    fig, ax = plt.subplots()
-    b_plot = [co2_for_plot(v) for v in iter_bayes]
-    m_plot = [co2_for_plot(v) for v in iter_min]
-    ax.plot(range(1, len(b_plot)+1), b_plot, marker='o', label='Bayesian')
-    ax.plot(range(1, len(m_plot)+1), m_plot, marker='x', label='Minimize')
-    ax.set_xlabel("Iteration")
-    ylab = "CO₂ (kg)" if unit_system=="Metric" else "CO₂ (lb)"
-    ax.set_ylabel(ylab)
-    ax.legend()
-    ax.grid(True)
-    st.pyplot(fig)
+    # Separate figure for Bayesian iteration
+    fig_bayes, ax_bayes = plt.subplots()
+    bayes_iter_values = [co2_for_plot(v) for v in iter_bayes]
+    ax_bayes.plot(range(1, len(bayes_iter_values)+1), bayes_iter_values, marker='o', label='Bayesian')
+    ax_bayes.set_xlabel("Iteration")
+    ylab_bayes = "CO₂ (kg)" if unit_system=="Metric" else "CO₂ (lb)"
+    ax_bayes.set_ylabel(ylab_bayes)
+    ax_bayes.set_title("Bayesian Iterations")
+    ax_bayes.grid(True)
+    st.pyplot(fig_bayes)
+
+    # Separate figure for Minimize iteration
+    fig_min, ax_min = plt.subplots()
+    min_iter_values = [co2_for_plot(v) for v in iter_min]
+    ax_min.plot(range(1, len(min_iter_values)+1), min_iter_values, marker='x', label='Minimize')
+    ax_min.set_xlabel("Iteration")
+    ylab_min = "CO₂ (kg)" if unit_system=="Metric" else "CO₂ (lb)"
+    ax_min.set_ylabel(ylab_min)
+    ax_min.set_title("Minimize Iterations")
+    ax_min.grid(True)
+    st.pyplot(fig_min)
 
     st.success("Optimization Complete!")
