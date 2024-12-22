@@ -68,14 +68,22 @@ default_cost_coefficients_metric = {
     "Fine Aggregate (Kg/m3)": 0.015,
 }
 
-# Conversion factors for US units
-def convert_to_us(metric_coefficients):
-    return {key: value / 35.3146667 for key, value in metric_coefficients.items()}
+# US coefficients are derived dynamically by conversion
+KG_TO_LB = 2.20462  # Kilogram to pound
+COST_CONVERSION = 35.3147  # m³ to ft³ for cost conversion
+
+# Function to convert coefficients to US
+
+def convert_to_us(coefficients_metric, is_cost=False):
+    return {
+        key: value * (KG_TO_LB if not is_cost else 1 / COST_CONVERSION)
+        for key, value in coefficients_metric.items()
+    }
 
 default_co2_coefficients_us = convert_to_us(default_co2_coefficients_metric)
-default_cost_coefficients_us = convert_to_us(default_cost_coefficients_metric)
+default_cost_coefficients_us = convert_to_us(default_cost_coefficients_metric, is_cost=True)
 
-# Create editable versions of the coefficients
+# Initialize coefficients
 co2_coefficients = default_co2_coefficients_metric.copy()
 cost_coefficients = default_cost_coefficients_metric.copy()
 
@@ -111,24 +119,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Unit Selection
+# Let user pick Metric or US
 unit_system = st.radio("Select Unit System:", ["Metric", "US"], index=0)
 
-if unit_system == "US":
-    co2_coefficients = default_co2_coefficients_us.copy()
-    cost_coefficients = default_cost_coefficients_us.copy()
-else:
+# Adjust coefficients based on unit system
+if unit_system == "Metric":
     co2_coefficients = default_co2_coefficients_metric.copy()
     cost_coefficients = default_cost_coefficients_metric.copy()
+else:
+    co2_coefficients = default_co2_coefficients_us.copy()
+    cost_coefficients = default_cost_coefficients_us.copy()
 
 # Display default options
 st.markdown("### Default Optimization Options")
 st.write("The app uses the following default optimization options:")
 st.write("**Bayesian Optimization Acquisition Function:** EI")
 st.write("**Minimize Optimization Method:** Trust-Constr")
-st.write("**Default CO₂ Coefficients:**")
+st.write("**Default CO₂ Coefficients (based on selected unit):**")
 st.json(co2_coefficients)
-st.write("**Default Cost Coefficients:**")
+st.write("**Default Cost Coefficients (based on selected unit):**")
 st.json(cost_coefficients)
 
 # Advanced Options Toggle
