@@ -247,8 +247,12 @@ conc_type_code = strength_ranges[conc_type_name]
 # Bayesian acq_func
 acq_func = st.selectbox("Bayesian acq_func:", ["EI", "PI"], index=0)
 
-# Minimize method
-method_name = st.selectbox("Minimize Method:", list(minimize_methods_display.keys()), index=0)
+# Minimize method (DEFAULT: "Trust-Constr")
+method_name = st.selectbox(
+    "Minimize Method:",
+    list(minimize_methods_display.keys()),
+    index=3  # <-- This sets default to "Trust-Constr"
+)
 method_code = minimize_methods_display[method_name]
 
 if st.button("Optimize"):
