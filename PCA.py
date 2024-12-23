@@ -210,7 +210,7 @@ def optimize_mix_minimize(target_strength_mpa, concrete_type, method="SLSQP"):
         x0,
         method=method,
         bounds=bounds,
-        constraints=cons
+        constraints=cons,
         options={"maxiter": 800}  # limit # of iterations
 
     )
