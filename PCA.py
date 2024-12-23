@@ -93,11 +93,20 @@ strength_ranges = {
     "Ultra-High performance": "UHPC"
 }
 
-minimize_methods_display = {
-    "SLSQP": "SLSQP",
-    "COBYLA": "COBYLA",
-    "L-BFGS-B": "L-BFGS-B",
-    "Trust-Constr": "trust-constr",
+# --- NEW user-facing vs. internal codes for Bayesian & Minimize ---
+
+# For Bayesian acquisition functions
+bayesian_ui_dict = {
+    "Expected Improvement (EI)": "EI",
+    "Probability of Improvement (PI)": "PI",
+}
+
+# For SciPy minimize methods
+minimize_ui_dict = {
+    "SLSQP (Sequential Least Squares)": "SLSQP",
+    "COBYLA (Constrained Optimization)": "COBYLA",
+    "L-BFGS-B (Limited-memory BFGS)": "L-BFGS-B",
+    "Trust-Constr (Trust Region)": "trust-constr",
 }
 
 def get_bounds(concrete_type):
@@ -158,6 +167,7 @@ def optimize_mix_bayesian(target_strength_mpa, concrete_type, acq_func="EI"):
     def objective(**params):
         mix = list(params.values())
         strength = predict_strength(mix)
+        # Add penalty if strength is below 110% of target
         penalty = max(0, (1.1 * target_strength_mpa - strength)) ** 2
         val = calculate_co2_kg(mix) + 10 * penalty
         iteration_values.append(val)
@@ -174,6 +184,11 @@ def optimize_mix_bayesian(target_strength_mpa, concrete_type, acq_func="EI"):
 
 # SciPy
 def optimize_mix_minimize(target_strength_mpa, concrete_type, method="SLSQP"):
+    """
+    method="SLSQP" is just the fallback default if none is provided.
+    The actual method used is determined by 'method_code' that we pass in
+    from the Streamlit selectbox.
+    """
     bounds = [(b.low, b.high) for b in get_bounds(concrete_type)]
     iteration_values = []
 
@@ -202,7 +217,7 @@ def optimize_mix_minimize(target_strength_mpa, concrete_type, method="SLSQP"):
 
 # 4) BUILD THE STREAMLIT APP
 # --------------------------------
-# Fancy Header 
+# Fancy Header
 st.markdown(
     """
     <h2 style="background-color:#003366; color:white; padding:10px; text-align:center;">
@@ -244,16 +259,21 @@ st.write("---")
 conc_type_name = st.selectbox("Concrete Type:", list(strength_ranges.keys()), index=0)
 conc_type_code = strength_ranges[conc_type_name]
 
-# Bayesian acq_func
-acq_func = st.selectbox("Bayesian acq_func:", ["EI", "PI"], index=0)
-
-# Minimize method (DEFAULT: "Trust-Constr")
-method_name = st.selectbox(
-    "Minimize Method:",
-    list(minimize_methods_display.keys()),
-    index=3  # <-- This sets default to "Trust-Constr"
+# Bayesian acq_func selection (user-friendly)
+acq_display = st.selectbox(
+    "Bayesian Acquisition Function:",
+    list(bayesian_ui_dict.keys()),
+    index=0  # default to "Expected Improvement (EI)"
 )
-method_code = minimize_methods_display[method_name]
+acq_func = bayesian_ui_dict[acq_display]  # actual code "EI" or "PI"
+
+# Minimize method selection (user-friendly)
+method_display = st.selectbox(
+    "Minimize Method:",
+    list(minimize_ui_dict.keys()),
+    index=3  # default to "Trust-Constr (Trust Region)"
+)
+method_code = minimize_ui_dict[method_display]  # actual code "SLSQP", etc.
 
 if st.button("Optimize"):
     # Convert to MPa if user is in US
@@ -263,7 +283,7 @@ if st.button("Optimize"):
         else:
             target_strength_mpa = target_strength_val / MPA_TO_PSI
     else:
-        # user typed a custom mix, let's predict the strength
+        # user typed a custom mix, let's predict the strength in MPa
         predicted_strength = predict_strength(user_mix)
         target_strength_mpa = predicted_strength
         st.write(f"**Predicted Strength** from your ingredients: {predicted_strength:.2f} MPa")
@@ -277,72 +297,78 @@ if st.button("Optimize"):
     bayes_mix = res_bayes.x
     bayes_co2 = calculate_co2_kg(bayes_mix)
     bayes_str = predict_strength(bayes_mix)
-    bayes_cost= calculate_cost(bayes_mix)
+    bayes_cost = calculate_cost(bayes_mix)
 
     # Minimize results
     min_mix = res_min.x
     min_co2 = calculate_co2_kg(min_mix)
     min_str = predict_strength(min_mix)
-    min_cost= calculate_cost(min_mix)
+    min_cost = calculate_cost(min_mix)
 
     # Display side-by-side
     col1, col2 = st.columns(2)
 
+    # ----------------------
+    #  BAYESIAN RESULTS
+    # ----------------------
     with col1:
         st.markdown("### Bayesian Optimization")
-        if unit_system=="Metric":
+        if unit_system == "Metric":
             co2_disp = bayes_co2
             str_disp = bayes_str
-            cost_disp= bayes_cost
-            co2_label= "kg/m³"
-            str_label= "MPa"
-            cost_label="$/m³"
-            mix_unit  ="Kg/m³"
+            cost_disp = bayes_cost
+            co2_label = "kg/m³"
+            str_label = "MPa"
+            cost_label = "$/m³"
+            mix_unit = "Kg/m³"
         else:
             co2_disp = bayes_co2 * KG_TO_LB
             str_disp = bayes_str * MPA_TO_PSI
-            cost_disp= bayes_cost / M3_TO_FT3
-            co2_label= "lb/ft³"
-            str_label= "psi"
-            cost_label="$/ft³"
-            mix_unit  ="lb/ft³"
+            cost_disp = bayes_cost / M3_TO_FT3
+            co2_label = "lb/ft³"
+            str_label = "psi"
+            cost_label = "$/ft³"
+            mix_unit = "lb/ft³"
 
         st.write(f"**CO₂ Emissions:** {co2_disp:.2f} {co2_label}")
         st.write(f"**Strength:** {str_disp:.2f} {str_label}")
         st.write(f"**Cost:** ${cost_disp:.2f} per {cost_label}")
         st.write("**Mix Proportions:**")
         for k, val_metric in zip(co2_coefficients.keys(), bayes_mix):
-            if unit_system=="Metric":
+            if unit_system == "Metric":
                 final_val = val_metric
             else:
                 final_val = val_metric * KG_PER_M3_TO_LB_PER_FT3
             st.write(f"- {cleaned_names[k]}: {final_val:.2f} {mix_unit}")
 
+    # ----------------------
+    #  MINIMIZE RESULTS
+    # ----------------------
     with col2:
         st.markdown("### Minimize Optimization")
-        if unit_system=="Metric":
+        if unit_system == "Metric":
             co2_disp = min_co2
             str_disp = min_str
-            cost_disp= min_cost
-            co2_label= "kg/m³"
-            str_label= "MPa"
-            cost_label="$/m³"
-            mix_unit  ="Kg/m³"
+            cost_disp = min_cost
+            co2_label = "kg/m³"
+            str_label = "MPa"
+            cost_label = "$/m³"
+            mix_unit = "Kg/m³"
         else:
             co2_disp = min_co2 * KG_TO_LB
             str_disp = min_str * MPA_TO_PSI
-            cost_disp= min_cost / M3_TO_FT3
-            co2_label= "lb/ft³"
-            str_label= "psi"
-            cost_label="$/ft³"
-            mix_unit  ="lb/ft³"
+            cost_disp = min_cost / M3_TO_FT3
+            co2_label = "lb/ft³"
+            str_label = "psi"
+            cost_label = "$/ft³"
+            mix_unit = "lb/ft³"
 
         st.write(f"**CO₂ Emissions:** {co2_disp:.2f} {co2_label}")
         st.write(f"**Strength:** {str_disp:.2f} {str_label}")
         st.write(f"**Cost:** ${cost_disp:.2f} per {cost_label}")
         st.write("**Mix Proportions:**")
         for k, val_metric in zip(co2_coefficients.keys(), min_mix):
-            if unit_system=="Metric":
+            if unit_system == "Metric":
                 final_val = val_metric
             else:
                 final_val = val_metric * KG_PER_M3_TO_LB_PER_FT3
@@ -351,26 +377,27 @@ if st.button("Optimize"):
     st.write("---")
     st.markdown("### Iteration Values")
 
+    # Helper to convert CO2 to lb if US system
     def co2_for_plot(c):
-        return c if unit_system=="Metric" else c * KG_TO_LB
+        return c if unit_system == "Metric" else c * KG_TO_LB
 
-    # Separate figure for Bayesian iteration
+    # Plot Bayesian iteration values
     fig_bayes, ax_bayes = plt.subplots()
     bayes_iter_values = [co2_for_plot(v) for v in iter_bayes]
-    ax_bayes.plot(range(1, len(bayes_iter_values)+1), bayes_iter_values, marker='o', label='Bayesian')
+    ax_bayes.plot(range(1, len(bayes_iter_values) + 1), bayes_iter_values, marker='o', label='Bayesian')
     ax_bayes.set_xlabel("Iteration")
-    ylab_bayes = "CO₂ (kg)" if unit_system=="Metric" else "CO₂ (lb)"
+    ylab_bayes = "CO₂ (kg)" if unit_system == "Metric" else "CO₂ (lb)"
     ax_bayes.set_ylabel(ylab_bayes)
     ax_bayes.set_title("Bayesian Iterations")
     ax_bayes.grid(True)
     st.pyplot(fig_bayes)
 
-    # Separate figure for Minimize iteration
+    # Plot Minimize iteration values
     fig_min, ax_min = plt.subplots()
     min_iter_values = [co2_for_plot(v) for v in iter_min]
-    ax_min.plot(range(1, len(min_iter_values)+1), min_iter_values, marker='x', label='Minimize')
+    ax_min.plot(range(1, len(min_iter_values) + 1), min_iter_values, marker='x', label='Minimize')
     ax_min.set_xlabel("Iteration")
-    ylab_min = "CO₂ (kg)" if unit_system=="Metric" else "CO₂ (lb)"
+    ylab_min = "CO₂ (kg)" if unit_system == "Metric" else "CO₂ (lb)"
     ax_min.set_ylabel(ylab_min)
     ax_min.set_title("Minimize Iterations")
     ax_min.grid(True)
