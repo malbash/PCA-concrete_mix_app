@@ -223,7 +223,7 @@ def optimize_mix_minimize(target_strength_mpa, concrete_type, method="SLSQP"):
 st.markdown(
     """
     <h2 style="background-color:#003366; color:white; padding:10px; text-align:center;">
-      Portland Cement Association - Concrete Mix Optimizer
+      PCA - Carbon Emission Concrete Mix Optimizer
     </h2>
     """,
     unsafe_allow_html=True
