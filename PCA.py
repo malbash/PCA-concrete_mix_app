@@ -334,7 +334,7 @@ if st.button("Optimize"):
 
         st.write(f"**CO₂ Emissions:** {co2_disp:.2f} {co2_label}")
         st.write(f"**Strength:** {str_disp:.2f} {str_label}")
-        st.write(f"**Cost:** ${cost_disp:.2f} per {cost_label}")
+        st.write(f"**Cost:** {cost_disp:.2f} USD {cost_label}")
         st.write("**Mix Proportions:**")
         for k, val_metric in zip(co2_coefficients.keys(), bayes_mix):
             if unit_system == "Metric":
@@ -367,7 +367,7 @@ if st.button("Optimize"):
 
         st.write(f"**CO₂ Emissions:** {co2_disp:.2f} {co2_label}")
         st.write(f"**Strength:** {str_disp:.2f} {str_label}")
-        st.write(f"**Cost:** ${cost_disp:.2f} per {cost_label}")
+        st.write(f"**Cost:** {cost_disp:.2f} USD {cost_label}")
         st.write("**Mix Proportions:**")
         for k, val_metric in zip(co2_coefficients.keys(), min_mix):
             if unit_system == "Metric":
