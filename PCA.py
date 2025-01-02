@@ -17,7 +17,7 @@ from skopt.utils import use_named_args
 from scipy.optimize import minimize
 
 # 1) MUST be first Streamlit command
-st.set_page_config(page_title="PCA - Carboon Emission Concrete Mix Optimizer", layout="wide")
+st.set_page_config(page_title="PCA - Carboon Emission Concrete Mix Optimizer", layout="centered")
 
 # -----------------------
 # 2) LOAD & TRAIN MODEL
