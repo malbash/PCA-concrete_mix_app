@@ -17,7 +17,7 @@ from skopt.utils import use_named_args
 from scipy.optimize import minimize
 
 # 1) MUST be first Streamlit command
-st.set_page_config(page_title="PCA Concrete Mix Optimizer", layout="wide")
+st.set_page_config(page_title="PCA - Carboon Emission Concrete Mix Optimizer", layout="wide")
 
 # -----------------------
 # 2) LOAD & TRAIN MODEL
@@ -168,7 +168,7 @@ def optimize_mix_bayesian(target_strength_mpa, concrete_type, acq_func="EI"):
         mix = list(params.values())
         strength = predict_strength(mix)
         # Add penalty if strength is below 110% of target
-        penalty = max(0, (1.1 * target_strength_mpa - strength)) ** 2
+        penalty = max(0, (1.0 * target_strength_mpa - strength)) ** 2
         val = calculate_co2_kg(mix) + 10 * penalty
         iteration_values.append(val)
         return val
